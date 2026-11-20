@@ -57,7 +57,7 @@ export function CheckoutModal({ plan, onClose }: { plan: RoofingPlan | null; onC
           accountId: siteConfig.company.whopAccountId,
           mode: "payment",
           plan: plan.id,
-          setupFutureUsage: plan.isDeposit ? "off_session" : undefined,
+          ...(plan.isDeposit ? { setupFutureUsage: "off_session" as const } : {}),
           returnUrl: window.location.href,
         });
         paymentsHandleRef.current = paymentsHandle;
@@ -106,7 +106,7 @@ export function CheckoutModal({ plan, onClose }: { plan: RoofingPlan | null; onC
     setError("");
 
     try {
-      const tokenResult = await paymentsHandleRef.current.createConfirmationToken();
+      const tokenResult = await paymentsHandleRef.current.createConfirmationToken({});
       const confirmationToken =
         typeof tokenResult === "string"
           ? tokenResult
@@ -126,7 +126,7 @@ export function CheckoutModal({ plan, onClose }: { plan: RoofingPlan | null; onC
 
       const payment = res?.payment;
       if (payment?.client_secret && payment?.status !== "succeeded") {
-        await whopRef.current?.payments?.handleNextAction?.(payment.client_secret);
+        await whopRef.current?.payments?.handleNextAction?.({ clientSecret: payment.client_secret, returnUrl: window.location.href });
       }
 
       setReceiptId(payment?.id || "CONFIRMED");
@@ -216,6 +216,8 @@ export function CheckoutModal({ plan, onClose }: { plan: RoofingPlan | null; onC
     </div>
   );
 }
+
+
 
 
 
